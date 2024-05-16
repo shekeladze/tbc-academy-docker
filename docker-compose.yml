@@ -1,0 +1,39 @@
+version: '3.9'
+
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  dockerproject.webapi:
+    image: ${DOCKER_REGISTRY-}dockerprojectwebapi
+    container_name: dockerproject.webapi
+    build:
+      context: .
+      dockerfile: DockerProject.WebApi/Dockerfile
+    environment:
+      - ConnectionStrings__Postgres=Host=dockerproject.db;Port=5432;Database=PeopleDb;Username=postgres;Password=postgres;
+    ports:
+      - "8080:8080"
+    depends_on:
+      - dockerproject.db
+    networks:
+      - app-network
+  
+  dockerproject.db:
+    image: postgres:latest
+    container_name: dockerproject.db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=PeopleDb
+    ports:
+      - "5433:5432"
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  db_data:
