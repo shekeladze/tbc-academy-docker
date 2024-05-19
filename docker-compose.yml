@@ -13,6 +13,7 @@ services:
       dockerfile: DockerProject.WebApi/Dockerfile
     environment:
       - ConnectionStrings__Postgres=Host=dockerproject.db;Port=5432;Database=PeopleDb;Username=postgres;Password=postgres;
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://dockerproject.dashboard:18889
     ports:
       - "8080:8080"
     depends_on:
@@ -32,6 +33,14 @@ services:
     restart: always
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+  
+  dockerproject.dashboard:
+    image: mcr.microsoft.com/dotnet/nightly/aspire-dashboard:latest
+    container_name: dockerproject.dashboard
+    ports:
+      - 18888:18888
     networks:
       - app-network
 
