@@ -1,4 +1,7 @@
 using DockerProject.WebApi.Data;
+using DockerProject.WebApi.Diags;
+using DockerProject.WebApi.Models;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -13,12 +16,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService("PeopleApp"))
+    .ConfigureResource(resource => resource.AddService(DiagnosticConfigs.ServiceName))
     .WithMetrics(metrics => 
     {
         metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation();
+
+        metrics.AddMeter(DiagnosticConfigs.Meter.Name);
 
         metrics.AddOtlpExporter();
     })
@@ -34,7 +39,9 @@ builder.Services.AddOpenTelemetry()
 
 builder.Logging.AddOpenTelemetry(logging => logging.AddOtlpExporter());
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<PersonDto>());
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -18,7 +18,7 @@ namespace DockerProject.WebApi.Data
                 .RuleFor(p => p.LastName, f => f.Name.LastName())
                 .RuleFor(p => p.DateOfBirth, f => f.Date.PastDateOnly(60, DateOnly.FromDateTime(DateTime.Now.AddYears(-18))));
 
-            var people = personFaker.Generate(100);
+            var people = personFaker.Generate(10);
 
             foreach (Person p in people)
             {

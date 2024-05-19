@@ -1,4 +1,6 @@
 ﻿using DockerProject.WebApi.Data;
+using DockerProject.WebApi.Diags;
+using DockerProject.WebApi.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DockerProject.WebApi.Controllers
@@ -24,6 +26,36 @@ namespace DockerProject.WebApi.Controllers
             _logger.LogInformation("People selected: {Length}", data.Length);
 
             return data;
+        }
+
+        [HttpPost]
+        public IActionResult Create(PersonDto person)
+        {
+            var newPerson = new Person
+            {
+                FirstName = person.FirstName,
+                LastName = person.LastName,
+                DateOfBirth = DateOnly.FromDateTime(person.DateOfBirth),
+            };
+
+            _context.People.Add(newPerson);
+
+            _context.SaveChanges();
+
+            DiagnosticConfigs.RegistrationsCounter.Add(
+                1, 
+                new KeyValuePair<string, object?>("person.age", AgeInYears(person.DateOfBirth)));
+
+            return Ok(newPerson);
+        }
+
+        private int AgeInYears(DateTime dateOfBirth)
+        {
+            DateTime now = DateTime.Today;
+            int age = now.Year - dateOfBirth.Year;
+            if (dateOfBirth.AddYears(age) > now)
+                age--;
+            return age;
         }
     }
 }
